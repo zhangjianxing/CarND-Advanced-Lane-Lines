@@ -7,12 +7,12 @@ def add_text_to_img(img: np.ndarray, text, bottomLeftCornerOfText=None):
     out_img = img.copy()
 
     # Write some Text
-    font                   = cv2.FONT_HERSHEY_SIMPLEX
-    bottomLeftCornerOfText = bottomLeftCornerOfText if bottomLeftCornerOfText else (10,100)
-    fontScale              = 2
-    thickness              = 4
-    fontColor              = (255,255,255)
-    lineType               = 2
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    bottomLeftCornerOfText = bottomLeftCornerOfText if bottomLeftCornerOfText else (10, 100)
+    fontScale = 2
+    thickness = 4
+    fontColor = (255, 255, 255)
+    lineType = 2
 
     cv2.putText(out_img, text, bottomLeftCornerOfText, font,
                 fontScale, fontColor, thickness=thickness, lineType=lineType)

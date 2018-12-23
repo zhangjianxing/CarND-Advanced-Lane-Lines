@@ -1,7 +1,9 @@
 from lib.camera_calibration import generate_undistort_matrix, undistort_img
 from lib.color_and_gradient import img_to_binary, img_to_gray
-from lib.find_line_poly import search_poly_from_scratch, find_lane_pixels_from_scratch, find_lane_pixels_around_old_fit, visualize_poly, fit_poly_from_pixels
-from lib.measure_curve import measure_real_world_curvature_for_road, measure_mid_position, measure_real_world_curvature_for_line, avg_curvature
+from lib.find_line_poly import search_poly_from_scratch, find_lane_pixels_from_scratch, find_lane_pixels_around_old_fit, \
+    visualize_poly, fit_poly_from_pixels
+from lib.measure_curve import measure_real_world_curvature_for_road, measure_mid_position, \
+    measure_real_world_curvature_for_line, avg_curvature
 from lib.utils import add_text_to_img, get_perspective_transform_meta_data
 import cv2
 import numpy as np
@@ -42,7 +44,6 @@ class Line(object):
             self.detected = self.current_base_x < std_mid if is_left else std_mid < self.current_base_x
         self.ploty = ploty
 
-
     def set_best_fit(self, best_fit, is_left_line=None):
         assert isinstance(is_left_line, bool)
         if best_fit is None:
@@ -70,12 +71,11 @@ class RoadLineDetector(object):
         self.transform_matrix = None
         self.transform_inv_matrix = None
         # detected lines
-        self.left_lines  = [] # type: list[Line]
-        self.right_lines = [] # type: list[Line]
+        self.left_lines = []  # type: list[Line]
+        self.right_lines = []  # type: list[Line]
 
         self.out_img_gray_img = out_img_gray_img
         self.out_img_show_pixels = out_img_show_pixels
-
 
     def generate_transform_matrix(self, img_size):
         img_size_x, img_size_y = img_size
@@ -83,18 +83,15 @@ class RoadLineDetector(object):
         self.transform_matrix = transform_matrix
         self.transform_inv_matrix = transform_inv_matrix
 
-
     def get_transform_matrix(self, img_size):
         if self.transform_matrix is None:
             self.generate_transform_matrix(img_size)
         return self.transform_matrix
 
-
     def get_transform_inv_matrix(self, img_size):
         if self.transform_inv_matrix is None:
             self.generate_transform_matrix(img_size)
         return self.transform_inv_matrix
-
 
     def _find_best_fit_from_lines(self, lines):
         best_fit = np.zeros(3)
@@ -102,13 +99,12 @@ class RoadLineDetector(object):
         for i in range(1, min(len(lines), self.NUM_RECENT_LINES_PROCESS) + 1):
             line = lines[-i]
             if line.detected:
-                total_weight += (1./self.RECENT_LINES_MULTIPLIER) ** i
-                best_fit += np.array(line.current_fit).reshape(3) * (1./self.RECENT_LINES_MULTIPLIER) ** i
+                total_weight += (1. / self.RECENT_LINES_MULTIPLIER) ** i
+                best_fit += np.array(line.current_fit).reshape(3) * (1. / self.RECENT_LINES_MULTIPLIER) ** i
         if not total_weight:
             return None
 
         return best_fit / total_weight
-
 
     def do_cross(self, left_line: Line, right_line: Line):
         if left_line.detected and right_line.detected:
@@ -117,12 +113,11 @@ class RoadLineDetector(object):
                     return True
         return False
 
-
     def find_line(self, bindary_transformed):
         img_shape = bindary_transformed.shape
 
         ploty = np.linspace(0, img_shape[0] - 1, img_shape[0])
-        old_best_left_fit  = None if not self.left_lines else self.left_lines[-1].best_fit
+        old_best_left_fit = None if not self.left_lines else self.left_lines[-1].best_fit
         old_best_right_fit = None if not self.right_lines else self.right_lines[-1].best_fit
         left_line, right_line = None, None
 
@@ -134,7 +129,7 @@ class RoadLineDetector(object):
             rightx, righty = find_lane_pixels_around_old_fit(bindary_transformed, old_best_right_fit)
             right_fitx, right_fit = fit_poly_from_pixels(img_shape, rightx, righty)
             right_line = Line(right_fit, ploty, rightx, righty, is_left=False)
-        # if line cross, invalidate both
+        # if line cross, reset both to be None
         if left_line is not None \
                 and right_line is not None \
                 and self.do_cross(left_line, right_line):
@@ -148,6 +143,11 @@ class RoadLineDetector(object):
                 left_line = Line(left_fit, ploty, leftx, lefty, is_left=True)
             if right_line is None:
                 right_line = Line(right_fit, ploty, rightx, righty, is_left=False)
+        # if line cross, invalidate both
+        if left_line is not None \
+                and right_line is not None \
+                and self.do_cross(left_line, right_line):
+            left_line.detected, right_line.detected = False, False
 
         self.left_lines.append(left_line)
         self.right_lines.append(right_line)
@@ -155,7 +155,6 @@ class RoadLineDetector(object):
         right_line.set_best_fit(self._find_best_fit_from_lines(self.right_lines), False)
 
         return bindary_transformed
-
 
     def map_lane(self, img, out_img_gray_img=None, out_img_show_pixels=None):
         img_shape = img.shape
@@ -194,7 +193,7 @@ class RoadLineDetector(object):
         if right_fitx is not None:
             cv2.polylines(road_layer, np.int_(np.dstack((right_fitx, ploty))), False, color=(255, 255, 0), thickness=8)
         if out_img_show_pixels or (out_img_show_pixels is None and self.out_img_show_pixels):
-            road_layer[self.left_lines[-1].ally, self.left_lines[-1].allx]   = [0, 0, 255]
+            road_layer[self.left_lines[-1].ally, self.left_lines[-1].allx] = [0, 0, 255]
             road_layer[self.right_lines[-1].ally, self.right_lines[-1].allx] = [0, 0, 255]
 
         road_layer = cv2.warpPerspective(road_layer, transform_inv_matrix, img_size)
@@ -211,7 +210,7 @@ class RoadLineDetector(object):
         out_img = add_text_to_img(
             out_img,
             'radius of curvature = %s (m)' %
-                ('%.2f'%curvature) if curvature is not None and curvature != np.inf else 'inf',
+            ('%.2f' % curvature) if curvature is not None and curvature != np.inf else 'inf',
             (10, 100)
         )
         if self.left_lines[-1].line_base_pos is None or self.right_lines[-1].line_base_pos is None:

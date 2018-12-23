@@ -94,13 +94,12 @@ def find_lane_pixels_around_old_fit(binary_warped, fit, margin=100):
     ### Set the area of search based on activated x-values ###
     ### within the +/- margin of our polynomial function ###
     lane_inds = ((nonzerox > (fit[0] * (nonzeroy ** 2) + fit[1] * nonzeroy + fit[2] - margin)) &
-                      (nonzerox < (fit[0] * (nonzeroy ** 2) + fit[1] * nonzeroy + fit[2] + margin)))
+                 (nonzerox < (fit[0] * (nonzeroy ** 2) + fit[1] * nonzeroy + fit[2] + margin)))
 
     # Again, extract left and right line pixel positions
     xs = nonzerox[lane_inds]
     ys = nonzeroy[lane_inds]
     return xs, ys
-
 
 
 def fit_poly_from_pixels(img_shape, xs, ys):
@@ -146,7 +145,7 @@ def search_poly_around_old(binary_warped, left_fit, right_fit, margin=100, draw_
 
     ## Visualization ##
     if draw_out_img:
-        out_img = np.dstack((binary_warped, binary_warped, binary_warped))*255
+        out_img = np.dstack((binary_warped, binary_warped, binary_warped)) * 255
         # Color in left and right line pixels
         out_img[lefty, leftx] = [255, 0, 0]
         out_img[righty, rightx] = [0, 0, 255]
@@ -187,4 +186,3 @@ def visualize_poly(img, left_fitx, right_fitx, ploty, margin=None):
         cv2.fillPoly(window_img, line_pts, (0, 255, 0))
 
     return window_img
-

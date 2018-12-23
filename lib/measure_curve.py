@@ -11,7 +11,7 @@ def poly_to_polycr(line_fit, ploty, ym_per_pix, xm_per_pix):
     return line_fit_cr
 
 
-def measure_real_world_curvature_for_line(line_fit, ploty, ym_per_pix = 30 / 720, xm_per_pix = 3.7 / 700):
+def measure_real_world_curvature_for_line(line_fit, ploty, ym_per_pix=30 / 720, xm_per_pix=3.7 / 700):
     '''
     Calculates the curvature of polynomial functions in meters.
     '''
@@ -23,7 +23,7 @@ def measure_real_world_curvature_for_line(line_fit, ploty, ym_per_pix = 30 / 720
     if line_fit_cr is None:
         return None
     curvature = (((1 + (2 * line_fit_cr[0] * y_eval * ym_per_pix + line_fit_cr[1]) ** 2) ** 1.5)
-                / np.absolute(2 * line_fit_cr[0]))
+                 / np.absolute(2 * line_fit_cr[0]))
     return curvature
 
 
@@ -35,10 +35,11 @@ def avg_curvature(left_curvature, right_curvature):
     elif left_curvature is None and right_curvature is not None:
         return right_curvature
     else:
-        print('no curvature found')
+        # print('no curvature found')
         return None
 
-def measure_real_world_curvature_for_road(left_fit, right_fit, ploty, ym_per_pix =30 / 720, xm_per_pix =3.7 / 700):
+
+def measure_real_world_curvature_for_road(left_fit, right_fit, ploty, ym_per_pix=30 / 720, xm_per_pix=3.7 / 700):
     '''
     Calculates the curvature of polynomial functions in meters.
     '''
@@ -52,7 +53,7 @@ def measure_real_world_curvature_for_road(left_fit, right_fit, ploty, ym_per_pix
     return avg_curvature(left_curvature, right_curvature)
 
 
-def measure_mid_position(left_fit, right_fit, ploty, std_mid = 660, imgsize_x=1200, xm_per_pix = 3.7 / 700):
+def measure_mid_position(left_fit, right_fit, ploty, std_mid=660, imgsize_x=1200, xm_per_pix=3.7 / 700):
     y_eval = np.max(ploty)
     # find mid point
     leftx = left_fit[0] * y_eval ** 2 + left_fit[1] * y_eval + left_fit[2] if left_fit is not None else 0
